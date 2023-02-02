@@ -1,3 +1,4 @@
+using BlogApi.Endpoints;
 using Core;
 using Core.Interfaces;
 using Core.Mapper;
@@ -6,29 +7,27 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<BlogDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("BlogDbConnection")!));
-builder.Services.AddAutoMapper(typeof(MappingConfig));
+builder.Services.AddDbContext<BlogDbContext>(options => 
+	options.UseSqlServer(builder.Configuration.GetConnectionString("BlogDbConnection")!));
 
-// endpoints configure
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddAutoMapper(typeof(MappingConfig));
 
 builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+	app.UseSwagger();
+	app.UseSwaggerUI();
+}
 
-
+app.ConfigureBlogEndpoints();
 app.UseHttpsRedirection();
 
-app.UseSwagger();
-app.UseSwaggerUI();
-
 app.Run();
-
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-	public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

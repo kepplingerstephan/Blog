@@ -1,5 +1,8 @@
-﻿using Core.Interfaces;
+﻿using AutoMapper;
+using Core.Interfaces;
 using Data.Dtos;
+using Data.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,34 +13,43 @@ namespace Core.Services
 {
 	public class TopicService : ITopicService
 	{
-		public Task<int> CreateAsync(TopicCreateEditDto entity)
-		{
-			throw new NotImplementedException();
-		}
+		private readonly BlogDbContext db;
+		private readonly IMapper mapper;
 
-		public Task<IEnumerable<TopicDto>> GetAllAsync()
+		public TopicService(BlogDbContext db, IMapper mapper)
 		{
-			throw new NotImplementedException();
+			this.db = db;
+			this.mapper = mapper;
 		}
-
-		public Task<TopicDto> GetByIdAsync(int id)
+		public async Task<int> CreateAsync(TopicCreateEditDto entity)
 		{
-			throw new NotImplementedException();
+			var result = await db.Topics.AddAsync(mapper.Map<TopicCreateEditDto, Topic>(entity));
+			return result.Entity.Id;
 		}
-
-		public Task<bool> RemoveAsync(int id)
+		public async Task<IEnumerable<TopicDto>> GetAllAsync()
 		{
-			throw new NotImplementedException();
+			var obj = await db.Topics.ToListAsync();
+			return mapper.Map<IEnumerable<Topic>, IEnumerable<TopicDto>>(obj);
 		}
-
-		public Task SaveAsync()
+		public async Task<TopicDto> GetByIdAsync(int id)
 		{
-			throw new NotImplementedException();
+			var obj = await db.Topics.FirstOrDefaultAsync(u => u.Id == id);
+			return mapper.Map<Topic, TopicDto>(obj);
 		}
-
-		public Task<bool> UpdateAsync(TopicCreateEditDto entity)
+		public async Task<bool> RemoveAsync(int id)
 		{
-			throw new NotImplementedException();
+			var obj = await db.Topics.FirstOrDefaultAsync(u => u.Id == id);
+			db.Topics.Remove(obj);
+			return true;
+		}
+		public async Task<bool> UpdateAsync(TopicCreateEditDto entity)
+		{
+			var result = db.Topics.Update(mapper.Map<TopicCreateEditDto, Topic>(entity));
+			return true;
+		}
+		public async Task SaveAsync()
+		{
+			await db.SaveChangesAsync();
 		}
 	}
 }

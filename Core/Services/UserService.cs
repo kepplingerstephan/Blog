@@ -1,5 +1,8 @@
-﻿using Core.Interfaces;
+﻿using AutoMapper;
+using Core.Interfaces;
 using Data.Dtos;
+using Data.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,34 +13,43 @@ namespace Core.Services
 {
 	public class UserService : IUserService
 	{
-		public Task<int> CreateAsync(UserCreateEditDto entity)
-		{
-			throw new NotImplementedException();
-		}
+		private readonly BlogDbContext db;
+		private readonly IMapper mapper;
 
-		public Task<IEnumerable<UserDto>> GetAllAsync()
+		public UserService(BlogDbContext db, IMapper mapper)
 		{
-			throw new NotImplementedException();
+			this.db = db;
+			this.mapper = mapper;
 		}
-
-		public Task<UserDto> GetByIdAsync(int id)
+		public async Task<int> CreateAsync(UserCreateEditDto entity)
 		{
-			throw new NotImplementedException();
+			var result = await db.Users.AddAsync(mapper.Map<UserCreateEditDto, User>(entity));
+			return result.Entity.Id;
 		}
-
-		public Task<bool> RemoveAsync(int id)
+		public async Task<IEnumerable<UserDto>> GetAllAsync()
 		{
-			throw new NotImplementedException();
+			var obj = await db.Users.ToListAsync();
+			return mapper.Map<IEnumerable<User>, IEnumerable<UserDto>>(obj);
 		}
-
-		public Task SaveAsync()
+		public async Task<UserDto> GetByIdAsync(int id)
 		{
-			throw new NotImplementedException();
+			var obj = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
+			return mapper.Map<User, UserDto>(obj);
 		}
-
-		public Task<bool> UpdateAsync(UserCreateEditDto entity)
+		public async Task<bool> RemoveAsync(int id)
 		{
-			throw new NotImplementedException();
+			var obj = await db.Users.FirstOrDefaultAsync(u => u.Id == id);
+			db.Users.Remove(obj);
+			return true;
+		}
+		public async Task<bool> UpdateAsync(UserCreateEditDto entity)
+		{
+			var result = db.Users.Update(mapper.Map<UserCreateEditDto, User>(entity));
+			return true;
+		}
+		public async Task SaveAsync()
+		{
+			await db.SaveChangesAsync();
 		}
 	}
 }
