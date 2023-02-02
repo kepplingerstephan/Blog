@@ -1,0 +1,53 @@
+﻿@page "/CreateBlog"
+@using System.Text.Json;
+@using global::Data.Dtos;
+@inject IHttpClientFactory HttpClientFactory
+@inject ILogger<CreateBlog> Logger
+
+<h3>CreateBlog</h3>
+
+@if(Topics is not null && Users is not null)
+{
+	
+<ul>
+	@foreach (var item in Topics)
+	{
+		<li>@item.Name</li>
+	}
+</ul>
+
+<ul>
+	@foreach (var item in Users)
+	{
+		<li>@item.Name</li>
+	}
+</ul>
+}
+
+@code {
+	public HttpClient Client { get; set; }
+	public List<TopicDto> Topics { get; set; }
+	public List<UserDto> Users { get; set; }
+
+	protected async override Task OnInitializedAsync()
+	{
+		Client = HttpClientFactory.CreateClient("api");
+
+		var result = await Client.GetFromJsonAsync<APIResponse>("topic");
+		Logger.LogInformation(JsonSerializer.Serialize(result));
+		if (result.IsSuccess)
+		{
+			Topics = JsonSerializer.Deserialize<List<TopicDto>>(result.Result.ToString());
+			Logger.LogInformation(JsonSerializer.Serialize(Topics));
+		}
+
+		result = await Client.GetFromJsonAsync<APIResponse>("user");
+		if (result.IsSuccess)
+		{
+			Users = JsonSerializer.Deserialize<List<UserDto>>(result.Result.ToString());
+			Logger.LogInformation(JsonSerializer.Serialize(Users));
+		}
+		
+		await InvokeAsync(() => StateHasChanged());
+	}
+}
