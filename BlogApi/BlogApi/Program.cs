@@ -4,6 +4,7 @@ using Core.Interfaces;
 using Core.Mapper;
 using Core.Services;
 using Microsoft.EntityFrameworkCore;
+using userApi.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.ConfigureBlogEndpoints();
+app.ConfigureTopicEndpoints();
+app.ConfigureUserEndpoints();
+
 app.UseHttpsRedirection();
 
 app.Run();
