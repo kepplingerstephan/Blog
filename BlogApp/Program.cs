@@ -1,12 +1,20 @@
 using BlogApp.Data;
+using Core;
+using Core.Interfaces;
+using Core.Mapper;
+using Core.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.EntityFrameworkCore;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
+builder.Services.AddMudServices();
 
 builder.Services.AddHttpClient("api", c =>
 {

@@ -2,14 +2,14 @@
 
 namespace BlogApp
 {
-	public class APIResponse
+	public class APIResponse<T> where T:class
 	{
 		public APIResponse()
 		{
 			ErrorMessages = new List<string>();
 		}
 		public bool IsSuccess { get; set; }
-		public Object Result { get; set; } = null!;
+		public ICollection<T> Result { get; set; } = null!;
 		public HttpStatusCode StatusCode { get; set; }
 		public List<string> ErrorMessages { get; set; }
 

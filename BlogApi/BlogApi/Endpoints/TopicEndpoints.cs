@@ -13,38 +13,38 @@ namespace BlogApi.Endpoints
 		{
 			app.MapGet("/api/topic", GetAllTopics)
 					.WithName("GetTopics")
-					.Produces<APIResponse>(200);
+					.Produces<APIResponse<TopicDto>>(200);
 			app.MapGet("/api/topic/{id:int}", GetTopic)
 				.WithName("GetTopic")
-				.Produces<APIResponse>(200);
+				.Produces<APIResponse<TopicDto>>(200);
 
 			app.MapPost("/api/topic", CreateTopic)
 				.WithName("CreateTopic")
 				.Accepts<TopicCreateEditDto>("application/json")
-				.Produces<APIResponse>(201)
+				.Produces<APIResponse<TopicDto>>(201)
 				.Produces(400);
 
 			app.MapPut("/api/topic", UpdateTopic)
 					.WithName("UpdateTopic")
 					.Accepts<TopicCreateEditDto>("application/json")
-					.Produces<APIResponse>(200)
+					.Produces<APIResponse<TopicDto>>(200)
 					.Produces(400);
 
 			app.MapDelete("/api/topic/{id:int}", DeleteTopic);
 		}
 		private async static Task<IResult> GetAllTopics(ITopicService service, ILogger<Program> logger)
 		{
-			APIResponse response = new();
+			APIResponse<TopicDto> response = new();
 			logger.Log(LogLevel.Information, "Getting all Topics");
-			response.Result = await service.GetAllAsync();
+			response.Result = (await service.GetAllAsync()).ToList();
 			response.IsSuccess = true;
 			response.StatusCode = HttpStatusCode.OK;
 			return Results.Ok(response);
 		}
 		private static async Task<IResult> GetTopic(ITopicService service, ILogger<Program> _logger, int id)
 		{
-			APIResponse response = new();
-			response.Result = await service.GetByIdAsync(id);
+			APIResponse<TopicDto> response = new();
+			response.Result = new List<TopicDto>() { await service.GetByIdAsync(id) };
 			response.IsSuccess = true;
 			response.StatusCode = HttpStatusCode.OK;
 			return Results.Ok(response);
@@ -52,12 +52,12 @@ namespace BlogApi.Endpoints
 
 		private static async Task<IResult> UpdateTopic(ITopicService service, IMapper mapper, [FromBody] TopicCreateEditDto blogDto)
 		{
-			APIResponse response = new() { IsSuccess = false, StatusCode = HttpStatusCode.BadRequest };
+			APIResponse<TopicDto> response = new() { IsSuccess = false, StatusCode = HttpStatusCode.BadRequest };
 
 			bool success = await service.UpdateAsync(blogDto);
 			await service.SaveAsync();
 
-			response.Result = mapper.Map<TopicDto>(await service.GetByIdAsync(blogDto.Id)); ;
+			response.Result = mapper.Map<ICollection<TopicDto>>(await service.GetByIdAsync(blogDto.Id)); ;
 			response.IsSuccess = success;
 			if (success)
 				response.StatusCode = HttpStatusCode.OK;
@@ -68,13 +68,13 @@ namespace BlogApi.Endpoints
 
 		private static async Task<IResult> CreateTopic(ITopicService service, IMapper mapper, [FromBody] TopicCreateEditDto blogDto)
 		{
-			APIResponse response = new() { IsSuccess = false, StatusCode = HttpStatusCode.BadRequest };
+			APIResponse<TopicDto> response = new() { IsSuccess = false, StatusCode = HttpStatusCode.BadRequest };
 
 			int resultId = await service.CreateAsync(blogDto);
 			await service.SaveAsync();
 
 			TopicDto blogResultDto = mapper.Map<TopicDto>(await service.GetByIdAsync(resultId));
-			response.Result = blogResultDto;
+			response.Result = new List<TopicDto>() { blogResultDto };
 			response.IsSuccess = true;
 			response.StatusCode = HttpStatusCode.Created;
 			return Results.Ok(response);
@@ -82,7 +82,7 @@ namespace BlogApi.Endpoints
 
 		private static async Task<IResult> DeleteTopic(ITopicService service, int id)
 		{
-			APIResponse response = new() { IsSuccess = false, StatusCode = HttpStatusCode.BadRequest };
+			APIResponse<TopicDto> response = new() { IsSuccess = false, StatusCode = HttpStatusCode.BadRequest };
 
 			TopicDto blog = await service.GetByIdAsync(id);
 			if (blog != null)

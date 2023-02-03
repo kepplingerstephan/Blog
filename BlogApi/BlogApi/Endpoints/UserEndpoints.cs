@@ -14,38 +14,38 @@ namespace userApi.Endpoints
 		{
 			app.MapGet("/api/user", GetAllUsers)
 					.WithName("GetUsers")
-					.Produces<APIResponse>(200);
+					.Produces<APIResponse<UserDto>>(200);
 			app.MapGet("/api/user/{id:int}", GetUser)
 				.WithName("GetUser")
-				.Produces<APIResponse>(200);
+				.Produces<APIResponse<UserDto>>(200);
 
 			app.MapPost("/api/user", CreateUser)
 				.WithName("CreateUser")
 				.Accepts<UserCreateEditDto>("application/json")
-				.Produces<APIResponse>(201)
+				.Produces<APIResponse<UserDto>>(201)
 				.Produces(400);
 
 			app.MapPut("/api/user", UpdateUser)
 					.WithName("UpdateUser")
 					.Accepts<UserCreateEditDto>("application/json")
-					.Produces<APIResponse>(200)
+					.Produces<APIResponse<UserDto>>(200)
 					.Produces(400);
 
 			app.MapDelete("/api/user/{id:int}", DeleteUser);
 		}
 		private async static Task<IResult> GetAllUsers(IUserService service, ILogger<Program> logger)
 		{
-			APIResponse response = new();
+			APIResponse<UserDto> response = new();
 			logger.Log(LogLevel.Information, "Getting all Users");
-			response.Result = await service.GetAllAsync();
+			response.Result = (await service.GetAllAsync()).ToList();
 			response.IsSuccess = true;
 			response.StatusCode = HttpStatusCode.OK;
 			return Results.Ok(response);
 		}
 		private static async Task<IResult> GetUser(IUserService service, ILogger<Program> _logger, int id)
 		{
-			APIResponse response = new();
-			response.Result = await service.GetByIdAsync(id);
+			APIResponse<UserDto> response = new();
+			response.Result = new List<UserDto>() { await service.GetByIdAsync(id) };
 			response.IsSuccess = true;
 			response.StatusCode = HttpStatusCode.OK;
 			return Results.Ok(response);
@@ -53,12 +53,12 @@ namespace userApi.Endpoints
 
 		private static async Task<IResult> UpdateUser(IUserService service, IMapper mapper, [FromBody] UserCreateEditDto blogDto)
 		{
-			APIResponse response = new() { IsSuccess = false, StatusCode = HttpStatusCode.BadRequest };
+			APIResponse<UserDto> response = new() { IsSuccess = false, StatusCode = HttpStatusCode.BadRequest };
 
 			bool success = await service.UpdateAsync(blogDto);
 			await service.SaveAsync();
 
-			response.Result = mapper.Map<UserDto>(await service.GetByIdAsync(blogDto.Id)); ;
+			response.Result = new List<UserDto>() { mapper.Map<UserDto>(await service.GetByIdAsync(blogDto.Id)) } ;
 			response.IsSuccess = success;
 			if (success)
 				response.StatusCode = HttpStatusCode.OK;
@@ -69,13 +69,13 @@ namespace userApi.Endpoints
 
 		private static async Task<IResult> CreateUser(IUserService service, IMapper mapper, [FromBody] UserCreateEditDto blogDto)
 		{
-			APIResponse response = new() { IsSuccess = false, StatusCode = HttpStatusCode.BadRequest };
+			APIResponse<UserDto> response = new() { IsSuccess = false, StatusCode = HttpStatusCode.BadRequest };
 
 			int resultId = await service.CreateAsync(blogDto);
 			await service.SaveAsync();
 
-			UserDto blogResultDto = mapper.Map<UserDto>(await service.GetByIdAsync(resultId));
-			response.Result = blogResultDto;
+			UserDto userResultDto = mapper.Map<UserDto>(await service.GetByIdAsync(resultId));
+			response.Result = new List<UserDto>() { userResultDto };
 			response.IsSuccess = true;
 			response.StatusCode = HttpStatusCode.Created;
 			return Results.Ok(response);
@@ -83,7 +83,7 @@ namespace userApi.Endpoints
 
 		private static async Task<IResult> DeleteUser(IUserService service, int id)
 		{
-			APIResponse response = new() { IsSuccess = false, StatusCode = HttpStatusCode.BadRequest };
+			APIResponse<UserDto> response = new() { IsSuccess = false, StatusCode = HttpStatusCode.BadRequest };
 
 			UserDto blog = await service.GetByIdAsync(id);
 			if (blog != null)
