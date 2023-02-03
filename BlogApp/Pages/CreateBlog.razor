@@ -24,10 +24,14 @@
 			}
 		</MudSelect>
 
-		<MudTextField T="string" Label="Outlined" Variant="Variant.Outlined" @bind-Value="Model.Content" Lines="3" />
+		<MudTextField T="string" Label="Text" Variant="Variant.Outlined" @bind-Value="Model.Content" Lines="3" />
 
-		<MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Submit</MudButton>
+		<MudButton Class="mt-3" Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Submit</MudButton>
 	</EditForm>
+}
+else
+{
+	<div class="loader"></div>
 }
 
 @code {
@@ -44,7 +48,6 @@
 
 		var userResponse = await GetFromUrlAsync<APIResponse<UserDto>>("user", Client);
 		Users = (userResponse.Result as ICollection<UserDto>).ToList();
-		Logger.LogInformation(JsonSerializer.Serialize(Users));
 
 		var topicResponse = await GetFromUrlAsync<APIResponse<TopicDto>>("topic", Client);
 		Topics = (topicResponse.Result as ICollection<TopicDto>).ToList();

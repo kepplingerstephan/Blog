@@ -13,7 +13,13 @@ namespace Core.Mapper
 	{
 		public MappingConfig() 
 		{
-			CreateMap<Blog, BlogDto>().ReverseMap();
+			CreateMap<Blog, BlogDto>()
+				.BeforeMap((src, dst) =>
+				{
+					src.Topic.Blogs = null;
+					src.User.Blogs = null;
+				})
+				.ReverseMap();
 			CreateMap<Blog, BlogCreateEditDto>().ReverseMap();
 
 			CreateMap<User, UserDto>().ReverseMap();

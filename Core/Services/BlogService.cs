@@ -29,12 +29,15 @@ namespace Core.Services
 		}
 		public async Task<IEnumerable<BlogDto>> GetAllAsync()
 		{
-			var obj = await db.Blogs.ToListAsync();
+			var obj = await db.Blogs
+				.Include(o => o.Topic)
+				.Include(o => o.User).ToListAsync();
 			return mapper.Map<IEnumerable<Blog>,IEnumerable<BlogDto>>(obj);
 		}
 		public async Task<BlogDto> GetByIdAsync(int id)
 		{
-			var obj = await db.Blogs.FirstOrDefaultAsync(u => u.Id == id);
+			var obj = await db.Blogs.Include(o => o.Topic)
+				.Include(o => o.User).FirstOrDefaultAsync(u => u.Id == id);
 			return mapper.Map<Blog, BlogDto>(obj);
 		}
 		public async Task<bool> RemoveAsync(int id)
