@@ -5,11 +5,12 @@
 @using global::Data.Dtos;
 @inject IHttpClientFactory HttpClientFactory
 @inject ILogger<CreateBlog> Logger
+@inject ISnackbar Snackbar
 
 <h3>CreateBlog</h3>
 @if (Topics is not null && Users is not null)
 {
-	<EditForm Model="Model">
+	<EditForm Model="Model" OnValidSubmit="OnValidSubmit">
 		<MudSelect T="int" Label="User" Variant="Variant.Outlined" @bind-Value="Model.UserId">
 			@foreach (var item in Users)
 			{
@@ -23,7 +24,7 @@
 			}
 		</MudSelect>
 
-		<MudTextField T="string" Label="Outlined" Variant="Variant.Outlined" Text="@Model.Content" Lines="3" />
+		<MudTextField T="string" Label="Outlined" Variant="Variant.Outlined" @bind-Value="Model.Content" Lines="3" />
 
 		<MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Submit</MudButton>
 	</EditForm>
@@ -34,6 +35,8 @@
 	public HttpClient Client { get; set; }
 	public List<TopicDto> Topics { get; set; }
 	public List<UserDto> Users { get; set; }
+
+	string text = "";
 
 	protected async override Task OnInitializedAsync()
 	{
@@ -54,7 +57,11 @@
 			return;
 		Model.Created = DateTime.Now;
 		Model.Updated = DateTime.Now;
-		var response = await PostToUrlAsync<APIResponse<BlogDto>>("blog/create", Model, Client);
+		var response = await PostToUrlAsync<APIResponse<BlogDto>>("blog", Model, Client);
+		if (response.IsSuccess)
+			Snackbar.Add("Blog erstellt!", Severity.Success);
+		Model = new();
+		StateHasChanged();
 	}
 
 	static JsonSerializerOptions Options { get; } = new JsonSerializerOptions()
